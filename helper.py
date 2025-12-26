@@ -36,7 +36,7 @@ def decompress_file(zst_file: str, output_dir: str, delete_after: bool = False):
 
     with open(zst_file, "rb") as f:
         with dctx.stream_reader(f) as decompressor:
-            with tarfile.open(fileobj=decompressor, mode="r") as tar:
+            with tarfile.open(fileobj=decompressor, mode="r|") as tar:
                 tar.extractall(path=output_dir)
 
     if delete_after:
