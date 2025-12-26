@@ -2,3 +2,4 @@ Output-UEx
 sqlite.db*
 .venv
 uv.lock
+.python-version
