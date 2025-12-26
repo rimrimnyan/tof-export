@@ -3,3 +3,4 @@ sqlite.db*
 .venv
 uv.lock
 .python-version
+export
