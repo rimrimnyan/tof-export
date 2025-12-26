@@ -1,7 +1,11 @@
 from abc import ABC
 from dataclasses import dataclass, field, fields
 from enum import Enum
-from typing import get_origin
+from typing import Any, get_args, get_origin
+
+
+class Unspecified:
+    pass
 
 
 class Element(str, Enum):
@@ -14,6 +18,10 @@ class Element(str, Enum):
     def serialize(self):
         return self.name
 
+    @classmethod
+    def deserialize(cls, value: str):
+        return cls[value]
+
 
 class Category(str, Enum):
     DPS = "DPS"
@@ -22,6 +30,10 @@ class Category(str, Enum):
 
     def serialize(self):
         return self.name
+
+    @classmethod
+    def deserialize(cls, value: str):
+        return cls[value]
 
 
 class Operation(int, Enum):
@@ -36,7 +48,11 @@ class Operation(int, Enum):
     HOLD_DODGE = 8
 
     def serialize(self):
-        return self.name
+        return self.value
+
+    @classmethod
+    def deserialize(cls, value: int):
+        return cls(value)
 
 
 @dataclass
@@ -45,43 +61,78 @@ class Exportable(ABC):
     Utility class for exporting stuff
     """
 
+    @classmethod
+    def _serialize_to(cls, _type: type, value: Any):
+        origin = get_origin(_type)
+        args = get_args(_type)
+
+        if hasattr(value, "serialize"):
+            return value.serialize()
+        elif _type in (str, int, float):
+            return value
+        elif origin in (list, set):
+            return [cls._serialize_to(args[0], x) for x in value]
+        elif origin is dict:
+            d = {}
+            key_type, val_type = args
+            for key, val in value.items():
+                d[cls._serialize_to(key_type, key)] = cls._serialize_to(val_type, val)
+            return d
+        else:
+            raise ValueError(f"Cannot serialize: {value} with type {_type}")
+
     def serialize(self):
         d = {}
 
         for f in fields(self):
-            origin = get_origin(f.type)
             f_val = getattr(self, f.name)
-
-            if hasattr(f_val, "serialize"):
-                d[f.name] = f_val.serialize()
-
-            elif f.type in (str, int, float):
-                d[f.name] = f_val
-
-            elif origin is dict:
-                _d1 = {}
-                for k, v in f_val.items():
-                    if hasattr(k, "serialize"):
-                        k = k.serialize()
-                    if hasattr(v, "serialize"):
-                        v = v.serialize()
-                    _d1[k] = v
-
-                d[f.name] = _d1
-            elif origin in (list, set):
-                _l1 = []
-
-                for item in f_val:
-                    if hasattr(item, "serialize"):
-                        item = item.serialize()
-                    _l1.append(item)
-
-                d[f.name] = _l1
-
-            else:
-                raise ValueError(f"Unmatched: {f.name} with type {f.type}")
+            d[f.name] = self._serialize_to(f.type, f_val)
 
         return d
+
+    @classmethod
+    def _deserialize_as(cls, _type: type, value: str | int | float | dict | list):
+        origin = get_origin(_type)
+        args = get_args(_type)
+
+        if hasattr(_type, "deserialize"):
+            return _type.deserialize(value)
+        elif _type in (str, int, float):
+            return value
+        elif origin is list:
+            if len(args) >= 2:
+                raise NotImplementedError("Cannot handle union types!")
+            return [cls._deserialize_as(args[0], x) for x in value]
+        elif origin is set:
+            if len(args) >= 2:
+                raise NotImplementedError("Cannot handle union types!")
+            return set([cls._deserialize_as(args[0], x) for x in value])
+        elif origin is dict:
+            key_type, val_type = args
+
+            d = {}
+            for key, val in value.items():
+                d[cls._deserialize_as(key_type, key)] = cls._deserialize_as(
+                    val_type, val
+                )
+            return d
+
+        else:
+            raise ValueError(f"Cannot process type {_type}")
+
+    @classmethod
+    def deserialize(cls, item: dict[str, dict | str | int | list]):
+        d = {}
+
+        for f in fields(cls):
+            f_val = item.get(f.name, Unspecified())
+
+            if f_val is Unspecified:
+                continue
+
+            d[f.name] = cls._deserialize_as(f.type, f_val)
+
+        return cls(**d)
 
 
 @dataclass
