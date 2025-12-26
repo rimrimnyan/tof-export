@@ -408,15 +408,20 @@ def get_weapons() -> list[Weapon]:
                 char=char_ref.char_name,
                 char_banner_image=char_ref.char_vertical_banner_image,
                 char_centered_image=char_ref.char_centered_image,
+                #
                 name=name_intro.weapon_name,
                 image=name_intro.weapon_image,
                 intro=name_intro.weapon_intro,
                 element=name_intro.element,
+                category=name_intro.category,
+                #
                 normals=abilities.attack,
                 dodges=abilities.dodge,
                 skills=abilities.skill,
                 discharges=abilities.discharge,
+                #
                 enhancement=adv.adv,
+                #
                 ref_names=all_ref_names,
             )
         )

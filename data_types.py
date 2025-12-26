@@ -198,6 +198,7 @@ class Weapon(Exportable):
     image: str = field(default="")
     intro: str = field(default="")
     element: Element = field(default=Element.ALTERED)
+    category: Category = field(default=Category.DPS)
 
     normals: list[AbilityItem] = field(default_factory=list)
     dodges: list[AbilityItem] = field(default_factory=list)
