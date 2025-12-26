@@ -437,11 +437,12 @@ def export_weapons(
     """
     Export the weapons for use with the website
     """
-    char_image_dir = f"{output_dir}/images"
+    char_image_dir = f"{output_dir}/images/char"
+    weapon_image_dir = f"{output_dir}/images/weapon"
     ability_image_dir = f"{output_dir}/images/ability"
 
-    os.makedirs(output_dir, exist_ok=True)
     os.makedirs(char_image_dir, exist_ok=True)
+    os.makedirs(weapon_image_dir, exist_ok=True)
     os.makedirs(ability_image_dir, exist_ok=True)
 
     def export_image(
@@ -471,7 +472,7 @@ def export_weapons(
         # images
         banner_image_exported = f"{char_image_dir}/{char}-banner.png"
         char_image_exported = f"{char_image_dir}/{char}.png"
-        weapon_image_exported = f"{char_image_dir}/{char}-weapon.png"
+        weapon_image_exported = f"{weapon_image_dir}/{char}.png"
 
         export_image(wpn, "char_banner_image", banner_image_exported, f"{output_dir}/")
         export_image(wpn, "char_centered_image", char_image_exported, f"{output_dir}/")
