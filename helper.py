@@ -1,5 +1,10 @@
 import os
 import shutil
+from decimal import Decimal
+
+
+def format_dec(num: Decimal):
+    return num.quantize(Decimal(1)) if num == num.to_integral() else num.normalize()
 
 
 def kebab_case(item: str):
