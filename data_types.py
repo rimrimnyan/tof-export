@@ -48,11 +48,11 @@ class Operation(int, Enum):
     HOLD_DODGE = 8
 
     def serialize(self):
-        return self.value
+        return self.name
 
     @classmethod
-    def deserialize(cls, value: int):
-        return cls(value)
+    def deserialize(cls, value: str):
+        return cls[value]
 
 
 @dataclass
