@@ -350,17 +350,20 @@ def get_ability_entries() -> dict[str, Abilities]:
                 branch_desc = DTGAT["Rows"][key]["Desc"].get("LocalizedString", "")
 
             # replace values in description
-            sut_key = item["Value"]["Name"].get("Key", "").rstrip("name")
-            if sut_key and f"{sut_key}1" in DTSUT["Rows"]:
+            if r"{" in branch_desc:
+                sut_key = item["Value"]["Name"].get("Key", "").rstrip("name")
+                if not sut_key:
+                    raise ValueError(f"Cannot find skill values for {key}")
+
+                if f"{sut_key}1" not in DTSUT["Rows"]:
+                    continue
+
                 ability_values = []
                 i = 1
                 while f"{sut_key}{i}" in DTSUT["Rows"]:
                     ab_val = Decimal(
                         str(DTSUT["Rows"][f"{sut_key}{i}"]["Keys"][0]["Value"])
-                        # should i get first or last key???
                     )
-                    # if not (ab_val == 0.0):
-                    #     # Ignore 0.0 values
                     ability_values.append(format_dec(ab_val))
                     i += 1
 
