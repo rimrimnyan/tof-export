@@ -429,62 +429,118 @@ def get_weapons() -> list[Weapon]:
     return weapons
 
 
-def export_weapons(
-    wpns: list[Weapon],
+def export_image_from_instance(
+    inst: Weapon | AbilityItem,
+    key: Literal["char_banner_image", "char_centered_image", "image", "icon"],
+    dst: str,
+    dst_trim: str = "",
+):
+    """
+    Copies the image to dst and modifies the path in the instance
+    """
+
+    src = getattr(inst, key)
+    if os.path.exists(dst):
+        print(f"Image already exists on {dst} - Skipping")
+    else:
+        shutil.copy(src, dst)
+
+    if dst_trim:
+        dst = dst.replace(dst_trim, "")
+
+    setattr(inst, key, dst)
+
+
+def _export_weapons(output_dir: str):
+    char_image_dir = f"{output_dir}/images/char"
+    weapon_image_dir = f"{output_dir}/images/weapon"
+    ability_image_dir = f"{output_dir}/images/ability"
+
+    for dir in [
+        char_image_dir,
+        weapon_image_dir,
+        ability_image_dir,
+    ]:
+        os.makedirs(dir, exist_ok=True)
+
+    for wpn in get_weapons():
+        char = kebab_case(wpn.char)
+
+        # weapon and char images
+        banner_image_exported = f"{char_image_dir}/{char}-banner.png"
+        char_image_exported = f"{char_image_dir}/{char}.png"
+        weapon_image_exported = f"{weapon_image_dir}/{char}.png"
+
+        export_image_from_instance(
+            wpn, "char_banner_image", banner_image_exported, f"{output_dir}/"
+        )
+        export_image_from_instance(
+            wpn, "char_centered_image", char_image_exported, f"{output_dir}/"
+        )
+        export_image_from_instance(
+            wpn, "image", weapon_image_exported, f"{output_dir}/"
+        )
+
+        # ability images
+        for ability in wpn.normals + wpn.dodges + wpn.skills + wpn.discharges:
+            ability_image_exported = f"{ability_image_dir}/{basename(ability.icon)}"
+            export_image_from_instance(
+                ability, "icon", ability_image_exported, f"{output_dir}/"
+            )
+
+        # weapon json
+        with open(f"{output_dir}/{char}.json", "w") as f:
+            f.write(json.dumps(wpn.serialize(), indent=4))
+
+
+def _export_icons(output_dir: str):
+    element_image_dir = f"{output_dir}/images/element"
+    category_image_dir = f"{output_dir}/images/category"
+
+    for dir in [
+        element_image_dir,
+        category_image_dir,
+    ]:
+        os.makedirs(dir, exist_ok=True)
+
+    # element icons
+    for ein, eout in [
+        ("fire", "flame"),
+        ("thunder", "volt"),
+        ("physics", "physical"),
+        ("ice", "frost"),
+        ("powers", "altered"),
+    ]:
+        shutil.copy(
+            rf"Output-UEx/Hotta/Content/Resources/UI/mingzou/icon/element_{ein}.png",
+            f"{element_image_dir}/{eout}.png",
+        )
+
+    for cin, cout in [
+        ("fangyu", "tank"),
+        ("qianggong", "dps"),
+        ("zengyi", "sup"),
+    ]:
+        shutil.copy(
+            rf"Output-UEx/Hotta/Content/Resources/UI/mingzou/icon/icon_{cin}.png",
+            f"{category_image_dir}/{cout}.png",
+        )
+
+
+def export_assets(
+    weapons: bool = True,
+    icons: bool = True,
     output_dir: str = "export",
     compress: bool = False,
 ):
     """
     Export the weapons for use with the website
     """
-    char_image_dir = f"{output_dir}/images/char"
-    weapon_image_dir = f"{output_dir}/images/weapon"
-    ability_image_dir = f"{output_dir}/images/ability"
 
-    os.makedirs(char_image_dir, exist_ok=True)
-    os.makedirs(weapon_image_dir, exist_ok=True)
-    os.makedirs(ability_image_dir, exist_ok=True)
-
-    def export_image(
-        inst: Weapon | AbilityItem,
-        key: Literal["char_banner_image", "char_centered_image", "image", "icon"],
-        dst: str,
-        dst_trim: str = "",
-    ):
-        """
-        Copies the image to dst and modifies the path in the instance
-        """
-
-        src = getattr(inst, key)
-        if os.path.exists(dst):
-            print(f"Image already exists on {dst} - Skipping")
-        else:
-            shutil.copy(src, dst)
-
-        if dst_trim:
-            dst = dst.replace(dst_trim, "")
-
-        setattr(inst, key, dst)
-
-    for wpn in wpns:
-        char = kebab_case(wpn.char)
-
-        # images
-        banner_image_exported = f"{char_image_dir}/{char}-banner.png"
-        char_image_exported = f"{char_image_dir}/{char}.png"
-        weapon_image_exported = f"{weapon_image_dir}/{char}.png"
-
-        export_image(wpn, "char_banner_image", banner_image_exported, f"{output_dir}/")
-        export_image(wpn, "char_centered_image", char_image_exported, f"{output_dir}/")
-        export_image(wpn, "image", weapon_image_exported, f"{output_dir}/")
-
-        # ability images
-        for ability in wpn.normals + wpn.dodges + wpn.skills + wpn.discharges:
-            ability_image_exported = f"{ability_image_dir}/{basename(ability.icon)}"
-            export_image(ability, "icon", ability_image_exported, f"{output_dir}/")
-
-        with open(f"{output_dir}/{char}.json", "w") as f:
-            f.write(json.dumps(wpn.serialize(), indent=4))
+    if weapons:
+        _export_weapons(output_dir)
+    if icons:
+        _export_icons(output_dir)
 
     if compress:
         print("Compressing...")
@@ -492,4 +548,8 @@ def export_weapons(
 
 
 if __name__ == "__main__":
-    export_weapons(get_weapons(), compress=True)
+    export_assets(
+        weapons=False,
+        icons=True,
+        # compress=True,
+    )
