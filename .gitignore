@@ -6,3 +6,7 @@ uv.lock
 export
 *.tar.zst
 **.pyc
+
+# local scripts
+auto_export.sh
+unpack_export.py
