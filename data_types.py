@@ -179,6 +179,18 @@ class AbilityItem(Exportable):
     icon: str
     control: list[Operation] = field(default_factory=list)
 
+    def __lt__(self, other: "AbilityItem"):
+        if not self.control:
+            return False
+        if not other.control:
+            return True
+
+        for x, y in zip(self.control, other.control):
+            if x != y:
+                return x.value < y.value
+
+        return len(self.control) < len(other.control)
+
 
 @dataclass
 class Abilities(Exportable):
