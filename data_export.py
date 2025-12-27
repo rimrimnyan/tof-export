@@ -501,20 +501,18 @@ def _export_weapons(output_dir: str):
         weapon_image_exported = f"{weapon_image_dir}/{char}.png"
 
         export_image_from_instance(
-            wpn, "char_banner_image", banner_image_exported, f"{output_dir}/"
+            wpn, "char_banner_image", banner_image_exported, output_dir
         )
         export_image_from_instance(
-            wpn, "char_centered_image", char_image_exported, f"{output_dir}/"
+            wpn, "char_centered_image", char_image_exported, output_dir
         )
-        export_image_from_instance(
-            wpn, "image", weapon_image_exported, f"{output_dir}/"
-        )
+        export_image_from_instance(wpn, "image", weapon_image_exported, output_dir)
 
         # ability images
         for ability in wpn.normals + wpn.dodges + wpn.skills + wpn.discharges:
             ability_image_exported = f"{ability_image_dir}/{basename(ability.icon)}"
             export_image_from_instance(
-                ability, "icon", ability_image_exported, f"{output_dir}/"
+                ability, "icon", ability_image_exported, output_dir
             )
 
         # weapon json
@@ -580,5 +578,5 @@ if __name__ == "__main__":
     export_assets(
         weapons=True,
         icons=True,
-        # compress=True,
+        compress=True,
     )
