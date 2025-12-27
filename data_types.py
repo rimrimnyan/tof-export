@@ -220,3 +220,7 @@ class Weapon(Exportable):
     enhancement: dict[int, str] = field(default_factory=dict)
 
     ref_names: set[str] = field(default_factory=set)
+
+    def __post_init__(self):
+        self.normals = sorted(self.normals)
+        self.dodges = sorted(self.dodges)

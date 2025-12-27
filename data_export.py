@@ -446,8 +446,8 @@ def get_weapons() -> list[Weapon]:
                 element=name_intro.element,
                 category=name_intro.category,
                 #
-                normals=sorted(abilities.attack),
-                dodges=sorted(abilities.dodge),
+                normals=abilities.attack,
+                dodges=abilities.dodge,
                 skills=abilities.skill,
                 discharges=abilities.discharge,
                 #
