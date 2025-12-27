@@ -70,10 +70,16 @@ ug -J4 --index -I 'KING'
     choco install package
     ```
 
-2. What is the Paks folder?
+2. What is the 'Paks' folder?
 
     Look on the directory where you installed TOF. Inside, it should be on `Client\WindowsNoEditor\Hotta\Content\Paks`.
     For launcher version, it can be `E:\TowerOfFantasy_Global\Client\WindowsNoEditor\Hotta\ContentPaks`
+
+3. Can't you just give a compressed file download or upload all the files in this repository?
+
+    The asset files are around 70 GB total.
+    Even after compressing to 40 GB, it is well above the 2 GB limit for GitHub Releases.
+    And no... please don't ask me to push the asset files to the repository.
 
 ## Navigation
 
