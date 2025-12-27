@@ -86,8 +86,22 @@ ug -J4 --index -I 'KING'
 This is for my personal uses since there are some files I need to go back and forth to check things with.
 If you also have the exported assets, clicking on this link should jump to the correct json file.
 
+### Weapon Description
+
 - [Static Weapon Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\StaticWeaponDataTable_MMO.json)
 - [Imitation Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\DT_Imitation_MMO.json)
 - [Weapon Upgrade Star Data](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable\WeaponUpgradeStarData_MMO.json)
 - [Gameplay Ability Tips Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\GameplayAbilityTipsDataTable_Balance.json)
 - [Skill Update Tips](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\Skill\SkillUpdateTips_balance.json)
+
+### Suppressor Level
+
+- [Suppressor Effect Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\DT_SuppressorEffect_MMO.json)
+
+### Equipment
+
+- [Equipment Enhancement Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\EquipStrengthenDataTable_MMO.json)
+
+### Server Level
+
+- [Server Level Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\ServerLevelDataTable_MMO.json)
