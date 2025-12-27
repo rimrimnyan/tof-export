@@ -351,11 +351,15 @@ def get_ability_entries() -> dict[str, Abilities]:
 
             # replace values in description
             if r"{" in branch_desc:
-                sut_key = item["Value"]["Name"].get("Key", "").rstrip("name")
+                sut_key = item["Key"] + "_"
+                # sut_key = item["Value"]["Name"].get("Key", "").rstrip("name")
                 if not sut_key:
                     raise ValueError(f"Cannot find skill values for {key}")
 
                 if f"{sut_key}1" not in DTSUT["Rows"]:
+                    print(
+                        f"`get_ability_entries` Cannot find values for {ref_name} with key {sut_key}"
+                    )
                     continue
 
                 ability_values = []
