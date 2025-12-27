@@ -259,6 +259,7 @@ def get_ability_entries() -> dict[str, Abilities]:
     for key in DTGAT["Rows"]:
         key: str
 
+        # skip breakfate, artifact abilities
         lowkey = key.lower()
         if lowkey.startswith(("ga_spawn", "ga_artifact")) or lowkey.endswith(
             ("breakfate")
@@ -272,6 +273,10 @@ def get_ability_entries() -> dict[str, Abilities]:
             continue
 
         if ref_name in skip:
+            continue
+
+        # prioritize `_Balance` version if it exists
+        if not key.endswith("_Balance") and f"{key}_Balance" in DTGAT["Rows"]:
             continue
 
         if ref_name not in entries:
@@ -303,12 +308,40 @@ def get_ability_entries() -> dict[str, Abilities]:
 
         branch_struct = DTGAT["Rows"][key]["GABranchStruct"]
         n = len(branch_struct)
+
         for item in branch_struct:
             branch_name = item["Value"]["Name"].get("LocalizedString", "")
             if not branch_name and n == 1:
                 branch_name = DTGAT["Rows"][key]["Name"].get("LocalizedString", "")
 
-            # no duplicates
+            if row_name in ("WeaponMelee", "WeaponEvade"):
+                # exclude Melee/Dodge abilities that dont have operation
+                # this will exclude Sneak Attack and even old values
+                if not item["Value"]["Operations"]:
+                    # print(
+                    #     f"`get_ability_entries` Skipping operationless ability '{branch_name}' of '{ref_name}'"
+                    # )
+                    continue
+
+            control = [Operation(x) for x in item["Value"]["Operations"]]
+            if control and Operation.AND in control:
+                skip_this = False
+                # check invalid operation combination
+                for op_idx, op in enumerate(control):
+                    if (
+                        op == Operation.AND
+                        and control[op_idx - 1] == control[op_idx + 1]
+                    ):
+                        print(
+                            f"`get_ability_entries` Skipping invalid operation: '{branch_name}' of '{ref_name}' with {[x.name for x in control[op_idx - 1 : op_idx + 2]]}"
+                        )
+                        skip_this = True
+                        break
+
+                if skip_this:
+                    continue
+
+            # no duplicates names
             if branch_name in [x.name for x in append_to]:
                 continue
 
@@ -343,8 +376,6 @@ def get_ability_entries() -> dict[str, Abilities]:
                     continue
 
             branch_icon = local_asset(item["Value"]["Icon"]["AssetPathName"])
-
-            control = [Operation(x) for x in item["Value"]["Operations"]]
 
             append_to.append(
                 AbilityItem(
@@ -440,9 +471,7 @@ def export_image_from_instance(
     """
 
     src = getattr(inst, key)
-    if os.path.exists(dst):
-        print(f"Image already exists on {dst} - Skipping")
-    else:
+    if not os.path.exists(dst):
         shutil.copy(src, dst)
 
     if dst_trim:
@@ -549,7 +578,7 @@ def export_assets(
 
 if __name__ == "__main__":
     export_assets(
-        weapons=False,
+        weapons=True,
         icons=True,
         # compress=True,
     )
