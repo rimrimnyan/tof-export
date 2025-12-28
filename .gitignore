@@ -1,5 +1,5 @@
 Output-UEx
-sqlite.db*
+*.db*
 .venv
 uv.lock
 .python-version
