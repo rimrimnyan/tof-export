@@ -223,6 +223,7 @@ class Weapon(Exportable):
     dodges: list[AbilityItem] = field(default_factory=list)
     skills: list[AbilityItem] = field(default_factory=list)
     discharges: list[AbilityItem] = field(default_factory=list)
+    passives: list[AbilityItem] = field(default_factory=list)
 
     enhancement: dict[int, str] = field(default_factory=dict)
 
