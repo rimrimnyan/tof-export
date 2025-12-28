@@ -93,13 +93,10 @@ class Remove(TextModi):
     pattern: str
 
     def __call__(self, text: str) -> str:
-        if isinstance(self.pattern, str):
-            new_text = text.replace(self.pattern, "")
-        else:
-            new_text = re.sub(self.pattern, "", text, flags=re.DOTALL)
+        new_text = re.sub(self.pattern, "", text, flags=re.DOTALL)
 
         if text == new_text:
-            raise ValueError(f"Failed to remove '{self.pattern}'")
+            raise ValueError(f"Failed to remove '{self.pattern}' on text '{text}'")
 
         return new_text
 
@@ -165,7 +162,13 @@ class Move(AbilityModi):
         if not m:
             raise ValueError(f"Regex '{self.regex}' did not match anything!")
         captured_desc = m.group(0)
-        for f in self.post_format:
+
+        pformats = (
+            self.post_format
+            if isinstance(self.post_format, list)
+            else [self.post_format]
+        )
+        for f in pformats:
             captured_desc = f(captured_desc)
 
         new_ab = AbilityItem(
@@ -260,33 +263,33 @@ class Modification(Exportable):
     mods: _ModificationDict
 
 
-MODS: _ModificationDict = {
-    "Liu Huo": {
-        "In All Directions": Move(
-            to="passives",
-            regex=r"\r\n\r\n.*",
-            post_format=[
-                Remove("\r\n\r\n <shuzhi>Passive: Calligraphy Characters</>\r\n"),
-                Strip(),
-            ],
-            name="Calligraphy Characters",
-        ),
-        "A Spark of Genius": Move(
-            to="passives",
-            regex=r"\r\n.*",
-            name="Fortitude Resonance",
-        ),
-    },
-    "Ji Yu": {
-        "Shifting Stars": Move(
-            to="passives",
-            regex=r"\r\n Grants.*",
-            name="Sharp Blade",
-        ),
-        "Review Board": Remove(r"\r\n Grants.*"),
-        "Starting Move": PREVIOUS,
-    },
-}
+# MODS: _ModificationDict = {
+#     "Liu Huo": {
+#         "In All Directions": Move(
+#             to="passives",
+#             regex=r"\r\n\r\n.*",
+#             post_format=[
+#                 Remove("\r\n\r\n <shuzhi>Passive: Calligraphy Characters</>\r\n"),
+#                 Strip(),
+#             ],
+#             name="Calligraphy Characters",
+#         ),
+#         "A Spark of Genius": Move(
+#             to="passives",
+#             regex=r"\r\n.*",
+#             name="Fortitude Resonance",
+#         ),
+#     },
+#     "Ji Yu": {
+#         "Shifting Stars": Move(
+#             to="passives",
+#             regex=r"\r\n Grants.*",
+#             name="Sharp Blade",
+#         ),
+#         "Review Board": Remove(r"\r\n Grants.*"),
+#         "Starting Move": PREVIOUS,
+#     },
+# }
 
 
 def _apply_mod_single(
