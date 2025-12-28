@@ -101,9 +101,13 @@ class Exportable(ABC):
             if type(value) in args:
                 return cls._serialize_to(type(value), value)
 
-            print(origin)
-            print(args)
-            print(value, type(value))
+            _v_type = type(value)
+            for _t in args:
+                if _v_type is _t:
+                    return cls._serialize_to(_t, value)
+                if _v_type is get_origin(_t):
+                    return cls._serialize_to(_t, value)
+
             raise ValueError(f"Cannot serialize union type {_type}")
 
         else:
@@ -199,7 +203,7 @@ class Exportable(ABC):
         for f in fields(cls):
             f_val = item.get(f.name, Unspecified())
 
-            if f_val is Unspecified:
+            if isinstance(f_val, Unspecified):
                 continue
 
             d[f.name] = cls._deserialize_as(f.type, f_val)
