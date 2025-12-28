@@ -1,22 +1,56 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
+from enum import Enum
 from typing import Callable, Literal, TypedDict
 import re
 from re import Pattern
 
-from data_types import AbilityItem, Operation, Weapon
+from data_types import AbilityItem, Exportable, Operation, Unspecified, Weapon
 
 
 AbilityCategory = Literal["normals", "dodges", "skills", "discharges", "passives"]
 
-PREVIOUS: Literal["PREVIOUS"] = "PREVIOUS"
+
+@dataclass
+class ModificationFunc(Exportable):
+    """Base class for modifying abilities"""
+
+    def serialize(self):
+        d = {}
+
+        for f in fields(self):
+            f_val = getattr(self, f.name)
+            d[f.name] = self._serialize_to(f.type, f_val)
+
+        # to deserialize properly, we need the class name
+        d["_class"] = ModFuncType(self.__class__).name
+
+        return d
+
+    @classmethod
+    def deserialize(cls, item: dict[str, dict | str | int | list] | str):
+        # if item is str, then its an instance of Previous
+        if isinstance(item, str):
+            return Previous()
+
+        d = {}
+
+        # _class is not in fields so grab from item instead
+        _cls = ModFuncType[item["_class"]].value
+
+        for f in fields(_cls):
+            f_val = item.get(f.name, Unspecified())
+
+            if f_val is Unspecified:
+                continue
+
+            d[f.name] = _cls._deserialize_as(f.type, f_val)
+
+        return _cls(**d)
 
 
-class ModificationFunc(ABC):
-    """Base class for modification"""
-
-
-class TextModi(ABC):
+@dataclass
+class TextModi(ModificationFunc):
     """
     A text formatting added to an input text.
     Can be used as 'Modification', in which case, it is applied to the Ability description.
@@ -26,7 +60,8 @@ class TextModi(ABC):
     def __call__(self, text: str) -> str: ...
 
 
-class AbilityModi(ABC):
+@dataclass
+class AbilityModi(ModificationFunc):
     "Allows modifying fields other than description"
 
     @abstractmethod
@@ -38,36 +73,37 @@ class AbilityModi(ABC):
     ): ...
 
 
+#####
+
+
+@dataclass
 class Remove(TextModi):
     "Removes the specified text or regex"
 
-    def __init__(self, text_or_pattern: str | Pattern) -> None:
-        self.text_or_pattern = text_or_pattern
+    pattern: str
 
     def __call__(self, text: str) -> str:
-        if isinstance(self.text_or_pattern, str):
-            new_text = text.replace(self.text_or_pattern, "")
+        if isinstance(self.pattern, str):
+            new_text = text.replace(self.pattern, "")
         else:
-            new_text = re.sub(self.text_or_pattern.pattern, "", text, flags=re.DOTALL)
+            new_text = re.sub(self.pattern, "", text, flags=re.DOTALL)
 
         if text == new_text:
-            raise ValueError(f"Failed to remove '{self.text_or_pattern}'")
+            raise ValueError(f"Failed to remove '{self.pattern}'")
 
         return new_text
 
 
+@dataclass
 class InsertNewlines(TextModi):
     "Inserts newlines before each matched regex"
 
-    def __init__(self, regex: str | Pattern) -> None:
-        self.regex = regex
+    regex: str
 
 
+@dataclass
 class Strip(TextModi):
     "Strips leading and trailing whitespaces"
-
-    def __init__(self) -> None:
-        pass
 
     def __call__(self, text: str) -> str:
         return text.strip()
@@ -80,14 +116,14 @@ class Move(AbilityModi):
     to: AbilityCategory
     "To which ability category"
 
-    regex: Pattern | None = field(default=None)
+    regex: str | None = field(default=None)
     """
     Regex capturing part of ability description.
     If not specified, just moves the whole ability itself.
     Must capture all text that must be removed!
     Perform post formatting in post_format to remove text in the actual captured description.
     """
-    post_format: list[Callable] = field(default_factory=lambda: [Strip()])
+    post_format: list[TextModi] = field(default_factory=lambda: [Strip()])
     "List post-formatting functions to apply"
 
     name: str | None = field(default=None)
@@ -115,7 +151,7 @@ class Move(AbilityModi):
             return
 
         # move part of ability description
-        m = re.search(self.regex.pattern, ability.desc, re.DOTALL)
+        m = re.search(self.regex, ability.desc, re.DOTALL)
         if not m:
             raise ValueError(f"Regex '{self.regex}' did not match anything!")
         captured_desc = m.group(0)
@@ -133,7 +169,7 @@ class Move(AbilityModi):
         to_ab_list.append(new_ab)
 
         # update original desc
-        ability.desc = re.sub(self.regex.pattern, "", ability.desc, flags=re.DOTALL)
+        ability.desc = re.sub(self.regex, "", ability.desc, flags=re.DOTALL)
 
 
 @dataclass
@@ -158,6 +194,36 @@ class Modify(AbilityModi):
             ability.control = self.control
 
 
+@dataclass
+class Previous(ModificationFunc):
+    "A special marker specifying that we should use the previous modification"
+
+    def serialize(self):  # type: ignore
+        return "PREVIOUS"
+
+    @classmethod
+    def deserialize(cls, *_):  # type: ignore
+        return cls()
+
+
+PREVIOUS = Previous()
+
+
+class ModFuncType(Enum):
+    REMOVE = Remove
+    STRIP = Strip
+    MOVE = Move
+    MODIFY = Modify
+    PREVIOUS = Previous
+
+    def serialize(self):
+        return self.name
+
+    @classmethod
+    def deserialize(cls, value: str):
+        return cls[value]
+
+
 #####
 
 WeaponName = str
@@ -168,15 +234,21 @@ _ModificationDict = dict[
     WeaponName,
     dict[
         AbilityOrMany,
-        TextModi | AbilityModi | list[AbilityModi | TextModi] | Literal["PREVIOUS"],
+        ModificationFunc | list[ModificationFunc],
     ],
 ]
+
+
+@dataclass
+class Modification(Exportable):
+    item: tuple[_ModificationDict]
+
 
 MODS: _ModificationDict = {
     "Liu Huo": {
         "In All Directions": Move(
             to="passives",
-            regex=re.compile(r"\r\n\r\n.*"),
+            regex=r"\r\n\r\n.*",
             post_format=[
                 Remove("\r\n\r\n <shuzhi>Passive: Calligraphy Characters</>\r\n"),
                 Strip(),
@@ -185,24 +257,24 @@ MODS: _ModificationDict = {
         ),
         "A Spark of Genius": Move(
             to="passives",
-            regex=re.compile(r"\r\n.*"),
+            regex=r"\r\n.*",
             name="Fortitude Resonance",
         ),
     },
     "Ji Yu": {
         "Shifting Stars": Move(
             to="passives",
-            regex=re.compile(r"\r\n Grants.*"),
+            regex=r"\r\n Grants.*",
             name="Sharp Blade",
         ),
-        "Review Board": Remove(re.compile(r"\r\n Grants.*")),
+        "Review Board": Remove(r"\r\n Grants.*"),
         "Starting Move": PREVIOUS,
     },
 }
 
 
 def _apply_mod_single(
-    modi: TextModi | AbilityModi | list[TextModi | AbilityModi],
+    modi: ModificationFunc | list[ModificationFunc],
     weapon: Weapon,
     ability: AbilityItem,
     ability_category: AbilityCategory,
@@ -220,7 +292,7 @@ def _apply_mod_single(
 
 
 def _apply_mod_multi(
-    modi: TextModi | AbilityModi | list[TextModi | AbilityModi],
+    modi: ModificationFunc | list[ModificationFunc],
     weapon: Weapon,
     abilities: list[AbilityItem],
     ability_categories: AbilityCategory | list[AbilityCategory],
@@ -254,7 +326,7 @@ def apply_mod(weapons: list[Weapon], mods: _ModificationDict):
 
         for _ab_name in mods[_wpn_name]:
             modi = mods[_wpn_name][_ab_name]
-            if modi == PREVIOUS:
+            if isinstance(modi, Previous):
                 if previous_modi is None:
                     raise ValueError(
                         "Cannot use PREVIOUS when no previously used modification!"
