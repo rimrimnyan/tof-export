@@ -16,32 +16,42 @@ class ModificationFunc(Exportable):
     """Base class for modifying abilities"""
 
     def serialize(self):
-        d = {}
+        if self.__class__ in ParamlessModFunc:
+            # serialize as string
+            return ParamlessModFunc(self.__class__).name
 
-        for f in fields(self):
-            f_val = getattr(self, f.name)
-            d[f.name] = self._serialize_to(f.type, f_val)
+        if self.__class__ in ParamModFunc:
+            # serialize it as { name: kwargs }
+            _classname = ParamModFunc(self.__class__).name
 
-        # to deserialize properly, we need the class name
-        d["_class"] = ModFuncType(self.__class__).name
+            d = {}
 
-        return d
+            for f in fields(self):
+                f_val = getattr(self, f.name)
+                d[f.name] = self._serialize_to(f.type, f_val)
+            return {_classname: d}
+
+        raise ValueError(f"Cannot serialize class {self.__class__.__name__}")
 
     @classmethod
     def deserialize(cls, item: dict[str, dict | str | int | list] | str):
-        # if item is str, then its an instance of Previous
+        # if item is str, then it is paramless
         if isinstance(item, str):
-            return Previous()
+            if item in ParamlessModFunc.__members__:
+                return ParamlessModFunc[item].value()
+            raise ValueError(f"Invalid item {item}")
+
+        # grab class name to get actual class
+        E = ParamModFunc[list(item.keys())[0]]
+        _cls = E.value
+        item = item[E.name]
 
         d = {}
-
-        # _class is not in fields so grab from item instead
-        _cls = ModFuncType[item["_class"]].value
 
         for f in fields(_cls):
             f_val = item.get(f.name, Unspecified())
 
-            if f_val is Unspecified:
+            if isinstance(f_val, Unspecified):
                 continue
 
             d[f.name] = _cls._deserialize_as(f.type, f_val)
@@ -123,7 +133,7 @@ class Move(AbilityModi):
     Must capture all text that must be removed!
     Perform post formatting in post_format to remove text in the actual captured description.
     """
-    post_format: list[TextModi] = field(default_factory=lambda: [Strip()])
+    post_format: TextModi | list[TextModi] = field(default_factory=Strip)
     "List post-formatting functions to apply"
 
     name: str | None = field(default=None)
@@ -216,12 +226,16 @@ class ModFuncType(Enum):
     MODIFY = Modify
     PREVIOUS = Previous
 
-    def serialize(self):
-        return self.name
 
-    @classmethod
-    def deserialize(cls, value: str):
-        return cls[value]
+class ParamModFunc(Enum):
+    REMOVE = Remove
+    MOVE = Move
+    MODIFY = Modify
+
+
+class ParamlessModFunc(Enum):
+    STRIP = Strip
+    PREVIOUS = Previous
 
 
 #####
@@ -241,7 +255,9 @@ _ModificationDict = dict[
 
 @dataclass
 class Modification(Exportable):
-    item: tuple[_ModificationDict]
+    "Class for loading and saving modifications"
+
+    mods: _ModificationDict
 
 
 MODS: _ModificationDict = {
