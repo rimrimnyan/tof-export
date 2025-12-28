@@ -12,7 +12,11 @@ AbilityCategory = Literal["normals", "dodges", "skills", "discharges", "passives
 PREVIOUS: Literal["PREVIOUS"] = "PREVIOUS"
 
 
-class TextFormat(ABC):
+class ModificationFunc(ABC):
+    """Base class for modification"""
+
+
+class TextModi(ABC):
     """
     A text formatting added to an input text.
     Can be used as 'Modification', in which case, it is applied to the Ability description.
@@ -22,8 +26,8 @@ class TextFormat(ABC):
     def __call__(self, text: str) -> str: ...
 
 
-class Modification(ABC):
-    "A more complicated modification"
+class AbilityModi(ABC):
+    "Allows modifying fields other than description"
 
     @abstractmethod
     def __call__(
@@ -34,7 +38,7 @@ class Modification(ABC):
     ): ...
 
 
-class Remove(TextFormat):
+class Remove(TextModi):
     "Removes the specified text or regex"
 
     def __init__(self, text_or_pattern: str | Pattern) -> None:
@@ -52,14 +56,14 @@ class Remove(TextFormat):
         return new_text
 
 
-class InsertNewlines(TextFormat):
+class InsertNewlines(TextModi):
     "Inserts newlines before each matched regex"
 
     def __init__(self, regex: str | Pattern) -> None:
         self.regex = regex
 
 
-class Strip(TextFormat):
+class Strip(TextModi):
     "Strips leading and trailing whitespaces"
 
     def __init__(self) -> None:
@@ -70,7 +74,7 @@ class Strip(TextFormat):
 
 
 @dataclass
-class Move(Modification):
+class Move(AbilityModi):
     "Move a part of Ability description into another category"
 
     to: AbilityCategory
@@ -133,7 +137,7 @@ class Move(Modification):
 
 
 @dataclass
-class Modify(Modification):
+class Modify(AbilityModi):
     "Replaces the specified fields in the Ability"
 
     name: str | None = field(default=None)
@@ -164,10 +168,7 @@ _ModificationDict = dict[
     WeaponName,
     dict[
         AbilityOrMany,
-        TextFormat
-        | Modification
-        | list[Modification | TextFormat]
-        | Literal["PREVIOUS"],
+        TextModi | AbilityModi | list[AbilityModi | TextModi] | Literal["PREVIOUS"],
     ],
 ]
 
@@ -201,7 +202,7 @@ MODS: _ModificationDict = {
 
 
 def _apply_mod_single(
-    modi: TextFormat | Modification | list[TextFormat | Modification],
+    modi: TextModi | AbilityModi | list[TextModi | AbilityModi],
     weapon: Weapon,
     ability: AbilityItem,
     ability_category: AbilityCategory,
@@ -210,16 +211,16 @@ def _apply_mod_single(
         modi = [modi]
 
     for _modi in modi:
-        if isinstance(_modi, TextFormat):
+        if isinstance(_modi, TextModi):
             ability.desc = _modi(ability.desc)
-        elif isinstance(_modi, Modification):
+        elif isinstance(_modi, AbilityModi):
             _modi(weapon, ability, ability_category)
         else:
             raise ValueError(f"Invalid item {_modi}")
 
 
 def _apply_mod_multi(
-    modi: TextFormat | Modification | list[TextFormat | Modification],
+    modi: TextModi | AbilityModi | list[TextModi | AbilityModi],
     weapon: Weapon,
     abilities: list[AbilityItem],
     ability_categories: AbilityCategory | list[AbilityCategory],
