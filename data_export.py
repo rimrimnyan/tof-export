@@ -582,8 +582,20 @@ def export_assets(
 
 
 if __name__ == "__main__":
-    export_assets(
-        weapons=True,
-        icons=True,
-        compress=True,
-    )
+    import sys
+
+    args = sys.argv
+
+    if len(args) == 1:
+        export_assets(
+            weapons=True,
+            icons=True,
+            compress=False,
+        )
+    else:
+        if "-c" in args:
+            export_assets(
+                weapons=True,
+                icons=True,
+                compress=True,
+            )
