@@ -605,9 +605,9 @@ def export_assets(
     if weapons:
         weaps = get_weapons()
         if edit:
-            from data_edit import apply_mod, _mods
+            from data_edit import apply_mod, MODS
 
-            apply_mod(weaps, _mods)
+            apply_mod(weaps, MODS)
 
         _export_weapons(weaps, output_dir)
     if icons:
@@ -615,7 +615,7 @@ def export_assets(
 
     if compress:
         print("Compressing...")
-        compress_dir(output_dir, "export.tar.zst", remove_after=True)
+        compress_dir(output_dir, "export.tar.zst", remove_after=False)
 
 
 if __name__ == "__main__":
