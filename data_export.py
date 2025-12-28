@@ -487,7 +487,7 @@ def export_image_from_instance(
     setattr(inst, key, dst)
 
 
-def _export_weapons(output_dir: str):
+def _export_weapons(weapons: list[Weapon], output_dir: str):
     char_image_dir = f"{output_dir}/images/char"
     weapon_image_dir = f"{output_dir}/images/weapon"
     ability_image_dir = f"{output_dir}/images/ability"
@@ -499,7 +499,7 @@ def _export_weapons(output_dir: str):
     ]:
         os.makedirs(dir, exist_ok=True)
 
-    for wpn in get_weapons():
+    for wpn in weapons:
         char = kebab_case(wpn.char)
 
         # weapon and char images
@@ -516,7 +516,9 @@ def _export_weapons(output_dir: str):
         export_image_from_instance(wpn, "image", weapon_image_exported, output_dir)
 
         # ability images
-        for ability in wpn.normals + wpn.dodges + wpn.skills + wpn.discharges:
+        for ability in (
+            wpn.normals + wpn.dodges + wpn.skills + wpn.discharges + wpn.passives
+        ):
             ability_image_exported = f"{ability_image_dir}/{basename(ability.icon)}"
             export_image_from_instance(
                 ability, "icon", ability_image_exported, output_dir
@@ -566,13 +568,20 @@ def export_assets(
     icons: bool = True,
     output_dir: str = "export",
     compress: bool = False,
+    edit: bool = False,
 ):
     """
     Export the weapons for use with the website
     """
 
     if weapons:
-        _export_weapons(output_dir)
+        weaps = get_weapons()
+        if edit:
+            from data_edit import apply_mod, _mods
+
+            apply_mod(weaps, _mods)
+
+        _export_weapons(weaps, output_dir)
     if icons:
         _export_icons(output_dir)
 
@@ -586,16 +595,17 @@ if __name__ == "__main__":
 
     args = sys.argv
 
-    if len(args) == 1:
-        export_assets(
-            weapons=True,
-            icons=True,
-            compress=False,
-        )
-    else:
-        if "-c" in args:
-            export_assets(
-                weapons=True,
-                icons=True,
-                compress=True,
-            )
+    compress = False
+    edit = False
+
+    if "-c" in args:
+        compress = True
+    if "-e" in args:
+        edit = True
+
+    export_assets(
+        weapons=True,
+        icons=True,
+        compress=compress,
+        edit=edit,
+    )
