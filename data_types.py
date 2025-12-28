@@ -54,6 +54,13 @@ class Operation(int, Enum):
     def deserialize(cls, value: str):
         return cls[value]
 
+    @property
+    def sort_value(self):
+        if self == Operation.DIRECTIONAL_KEY:
+            return 1
+        else:
+            return self.value
+
 
 @dataclass
 class Exportable(ABC):
@@ -186,8 +193,8 @@ class AbilityItem(Exportable):
             return True
 
         for x, y in zip(self.control, other.control):
-            if x != y:
-                return x.value < y.value
+            if x.sort_value != y.sort_value:
+                return x.sort_value < y.sort_value
 
         return len(self.control) < len(other.control)
 
