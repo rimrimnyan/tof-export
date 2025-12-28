@@ -558,7 +558,7 @@ def _export_icons(output_dir: str):
     for cin, cout in [
         ("fangyu", "tank"),
         ("qianggong", "dps"),
-        ("zengyi", "sup"),
+        ("zengyi", "support"),
     ]:
         shutil.copy(
             rf"Output-UEx/Hotta/Content/Resources/UI/mingzou/icon/icon_{cin}.png",
