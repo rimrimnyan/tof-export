@@ -161,13 +161,13 @@ class Exportable(ABC):
             for _t in args:
                 if _v_type is _t:
                     # check for simple types
-                    return cls._deserialize_as(_v_type, value)
+                    return cls._deserialize_as(_t, value)
 
                 _t_orig = get_origin(_t)
 
                 # check if type matches first
                 if _v_type is _t_orig:
-                    raise ValueError("Matching vtype! #TODO")
+                    return cls._deserialize_as(_t, value)
 
                 if _t_orig is None:
                     # for exportable classes, the origin will be None
