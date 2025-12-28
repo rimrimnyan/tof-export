@@ -23,6 +23,9 @@ def compress_dir(
 
     cctx = zstd.ZstdCompressor(level=level)
 
+    if os.path.exists("export.tar.zst"):
+        os.remove("export.tar.zst")
+
     with open(output_file, "wb") as f:
         with cctx.stream_writer(f) as compressor:
             with tarfile.open(fileobj=compressor, mode="w") as tar:
