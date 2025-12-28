@@ -605,9 +605,12 @@ def export_assets(
     if weapons:
         weaps = get_weapons()
         if edit:
-            from data_edit import apply_mod, MODS
+            from data_edit import apply_mod, Modification
 
-            apply_mod(weaps, MODS)
+            with open("mods.json", "rb") as f:
+                MODI = Modification.deserialize(json.loads(f.read()))
+
+            apply_mod(weaps, MODI.mods)
 
         _export_weapons(weaps, output_dir)
     if icons:
