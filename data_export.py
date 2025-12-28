@@ -532,10 +532,12 @@ def _export_weapons(weapons: list[Weapon], output_dir: str):
 def _export_icons(output_dir: str):
     element_image_dir = f"{output_dir}/images/element"
     category_image_dir = f"{output_dir}/images/category"
+    operation_image_dir = f"{output_dir}/images/operation"
 
     for dir in [
         element_image_dir,
         category_image_dir,
+        operation_image_dir,
     ]:
         os.makedirs(dir, exist_ok=True)
 
@@ -552,6 +554,7 @@ def _export_icons(output_dir: str):
             f"{element_image_dir}/{eout}.png",
         )
 
+    # category icons
     for cin, cout in [
         ("fangyu", "tank"),
         ("qianggong", "dps"),
@@ -560,6 +563,31 @@ def _export_icons(output_dir: str):
         shutil.copy(
             rf"Output-UEx/Hotta/Content/Resources/UI/mingzou/icon/icon_{cin}.png",
             f"{category_image_dir}/{cout}.png",
+        )
+
+    # operation icons
+    for oin, oout in [
+        ("gongji", "attack"),
+        ("tiaoyue", "jump"),
+        ("jipao", "dodge"),
+        ("dunxia", "sneak"),
+        ("fangxiang", "directional_key"),
+        ("changan_L10N", "hold_attack"),
+        ("jiahao", "and"),
+        ("jiantou", "next"),
+        ("shanbichangan", "hold_dodge"),
+    ]:
+        en_ver = rf"Output-UEx/Hotta/Content/L10N/en/Resources/UI/equiptips/Skill/jinengzhaoshu_zhaoshu_{oin}.png"
+        cn_ver = rf"Output-UEx/Hotta/Content/Resources/UI/equiptips/Skill/jinengzhaoshu_zhaoshu_{oin}.png"
+
+        if os.path.exists(en_ver):
+            to_copy = en_ver
+        else:
+            to_copy = cn_ver
+
+        shutil.copy(
+            to_copy,
+            f"{operation_image_dir}/{oout}.png",
         )
 
 
