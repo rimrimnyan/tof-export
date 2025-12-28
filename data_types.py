@@ -213,6 +213,7 @@ class Weapon(Exportable):
     char: str = field(default="")
     char_banner_image: str = field(default="")
     char_centered_image: str = field(default="")
+
     name: str = field(default="")
     image: str = field(default="")
     intro: str = field(default="")
