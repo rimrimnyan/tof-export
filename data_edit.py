@@ -227,17 +227,6 @@ class Previous(ModificationFunc):
         return cls()
 
 
-PREVIOUS = Previous()
-
-
-class ModFuncType(Enum):
-    REMOVE = Remove
-    STRIP = Strip
-    MOVE = Move
-    MODIFY = Modify
-    PREVIOUS = Previous
-
-
 class ParamModFunc(Enum):
     REMOVE = Remove
     MOVE = Move
