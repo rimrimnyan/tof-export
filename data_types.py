@@ -1,12 +1,13 @@
 from abc import ABC
-from dataclasses import dataclass, field, fields
+from dataclasses import MISSING, dataclass, field, fields
 from enum import Enum
 from types import NoneType, UnionType
 from typing import Any, Literal, Union, get_args, get_origin
 
 
 class Unspecified:
-    pass
+    def __bool__(self):
+        return False
 
 
 class Element(str, Enum):
@@ -120,6 +121,13 @@ class Exportable(ABC):
 
         for f in fields(self):
             f_val = getattr(self, f.name)
+
+            # skip serializing defaults
+            if f.default_factory is not MISSING and f_val == f.default_factory():
+                continue
+            if f.default is not MISSING and f_val == f.default:
+                continue
+
             d[f.name] = self._serialize_to(f.type, f_val)
 
         return d

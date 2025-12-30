@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, fields
+from dataclasses import MISSING, dataclass, field, fields
 from enum import Enum
-from typing import Callable, Literal, TypedDict
+from types import NoneType, UnionType
+from typing import Callable, Literal, TypedDict, Union, get_args, get_origin
 import re
 from re import Pattern
 
@@ -28,6 +29,13 @@ class ModificationFunc(Exportable):
 
             for f in fields(self):
                 f_val = getattr(self, f.name)
+
+                # skip serializing defaults
+                if f.default_factory is not MISSING and f_val == f.default_factory():
+                    continue
+                if f.default is not MISSING and f_val == f.default:
+                    continue
+
                 d[f.name] = self._serialize_to(f.type, f_val)
             return {_classname: d}
 
