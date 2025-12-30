@@ -11,7 +11,7 @@ For this repository, [Ue4Export](https://github.com/CrystalFerrai/Ue4Export) was
 
 ```bat
 REM export-tof.bat
-@Ue4Export "X:\path\to\Paks" TowerOfFantasy "tof-assetlist.txt" "X:\path\to\Output-UEx" --key 0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8
+@Ue4Export --mix-output "X:\path\to\Paks" TowerOfFantasy "tof-assetlist.txt" "X:\path\to\Output-UEx" --key 0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8
 ```
 
 ```txt
