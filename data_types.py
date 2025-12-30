@@ -16,6 +16,7 @@ class Element(str, Enum):
     VOLT = "Thunder"
     FROST = "Ice"
     ALTERED = "Superpower"
+    UNSPECIFIED = ""
 
     def serialize(self):
         return self.name
@@ -29,6 +30,7 @@ class Category(str, Enum):
     DPS = "DPS"
     SUPPORT = "SUP"
     TANK = "Tank"
+    UNSPECIFIED = ""
 
     def serialize(self):
         return self.name
@@ -294,8 +296,8 @@ class Weapon(Exportable):
     name: str = field(default="")
     image: str = field(default="")
     intro: str = field(default="")
-    element: Element = field(default=Element.ALTERED)
-    category: Category = field(default=Category.DPS)
+    element: Element = field(default=Element.UNSPECIFIED)
+    category: Category = field(default=Category.UNSPECIFIED)
 
     normals: list[AbilityItem] = field(default_factory=list)
     dodges: list[AbilityItem] = field(default_factory=list)
