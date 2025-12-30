@@ -18,6 +18,7 @@ from data_types import (
     Weapon,
 )
 from helper import compress_dir, format_dec, kebab_case
+from urllib.request import urlopen
 
 EXPORT_DIR = "tof-assets"
 
@@ -596,6 +597,7 @@ def export_assets(
     output_dir: str = "export",
     compress: bool = False,
     edit: bool = False,
+    mod_file: str = "mods.json",
 ):
     """
     Export the weapons for use with the website
@@ -606,8 +608,12 @@ def export_assets(
         if edit:
             from data_edit import apply_mod, Modification
 
-            with open("mods.json", "rb") as f:
-                MODI = Modification.deserialize(json.loads(f.read()))
+            if mod_file.startswith("https"):
+                with urlopen(mod_file) as f:
+                    MODI = Modification.deserialize(json.loads(f.read()))
+            else:
+                with open("mods.json", "rb") as f:
+                    MODI = Modification.deserialize(json.loads(f.read()))
 
             apply_mod(weaps, MODI.mods)
 
