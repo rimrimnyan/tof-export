@@ -262,34 +262,13 @@ class Modification(Exportable):
 
     mods: _ModificationDict
 
+    def serialize(self):
+        return self._serialize_to(_ModificationDict, self.mods)
 
-# MODS: _ModificationDict = {
-#     "Liu Huo": {
-#         "In All Directions": Move(
-#             to="passives",
-#             regex=r"\r\n\r\n.*",
-#             post_format=[
-#                 Remove("\r\n\r\n <shuzhi>Passive: Calligraphy Characters</>\r\n"),
-#                 Strip(),
-#             ],
-#             name="Calligraphy Characters",
-#         ),
-#         "A Spark of Genius": Move(
-#             to="passives",
-#             regex=r"\r\n.*",
-#             name="Fortitude Resonance",
-#         ),
-#     },
-#     "Ji Yu": {
-#         "Shifting Stars": Move(
-#             to="passives",
-#             regex=r"\r\n Grants.*",
-#             name="Sharp Blade",
-#         ),
-#         "Review Board": Remove(r"\r\n Grants.*"),
-#         "Starting Move": PREVIOUS,
-#     },
-# }
+    @classmethod
+    def deserialize(cls, item: dict[str, dict | str | int | list]):
+        d = cls._deserialize_as(_ModificationDict, item)
+        return cls(mods=d)
 
 
 def _apply_mod_single(
