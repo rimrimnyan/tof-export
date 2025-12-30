@@ -17,6 +17,8 @@ except ImportError:
     print("  uv sync --extra image")
     sys.exit(1)
 
+from data_export import EXPORT_DIR
+
 DB_FILE = "images.db"
 BATCH_SIZE = 100
 MAX_WORKERS = 4
@@ -70,7 +72,7 @@ def file_generator(base_path):
         yield p
 
 
-def create_index(base_path="Output-UEx"):
+def create_index(base_path=EXPORT_DIR):
     global total, running
 
     with sqlite3.connect(DB_FILE) as conn:
@@ -353,9 +355,9 @@ if __name__ == "__main__":
             print("       python script.py [-n NUM_RESULTS] -i <image_path>")
     elif not os.path.exists(DB_FILE):
         # Index mode - allow custom path
-        base_path = input("Enter directory to index (default: Output-UEx): ").strip()
+        base_path = input(f"Enter directory to index (default: {EXPORT_DIR}): ").strip()
         if not base_path:
-            base_path = "Output-UEx"
+            base_path = EXPORT_DIR
 
         if not Path(base_path).exists():
             print(f"Directory {base_path} does not exist!")

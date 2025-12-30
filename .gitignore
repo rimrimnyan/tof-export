@@ -1,4 +1,4 @@
-Output-UEx
+tof-assets
 *.db*
 .venv
 uv.lock

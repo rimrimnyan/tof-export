@@ -19,13 +19,15 @@ from data_types import (
 )
 from helper import compress_dir, format_dec, kebab_case
 
+EXPORT_DIR = "tof-assets"
+
 
 def datatable_path(json_file: str):
     dirs = [
-        r"Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO",
-        r"Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable",
-        r"Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance",
-        r"Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\Skill",
+        rf"{EXPORT_DIR}\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO",
+        rf"{EXPORT_DIR}\Hotta\Content\Resources\CoreBlueprints\DataTable",
+        rf"{EXPORT_DIR}\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance",
+        rf"{EXPORT_DIR}\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\Skill",
     ]
 
     for dir in dirs:
@@ -48,14 +50,11 @@ with open(datatable_path("SkillUpdateTips_balance"), "rb") as f:
     DTSUT: dict = json.loads(f.read())[0]
 
 
-ref_names_dir = os.listdir(
-    # r"Output-UEx\Hotta\Content\Resources\Abilities\Buff\Player\WeaponSSR"
-    r"Output-UEx\Hotta\Content\Resources\Abilities\Player"
-)
+ref_names_dir = os.listdir(rf"{EXPORT_DIR}\Hotta\Content\Resources\Abilities\Player")
 
 
 def local_asset(path: str):
-    return path.replace(r"/Game", r"Output-UEx/Hotta/Content").split(".")[0] + ".png"
+    return path.replace(r"/Game", rf"{EXPORT_DIR}/Hotta/Content").split(".")[0] + ".png"
 
 
 def get_name_intro_entries() -> list[NameIntroEntry]:
@@ -189,7 +188,7 @@ def get_effect_figures(remould_params: dict) -> list[str]:
         figpath = curve_table["ObjectPath"].rstrip(".0123456789")
 
         if figpath not in loaded_jsons:
-            with open(rf"Output-UEx/{figpath}.json", "rb") as f:
+            with open(rf"{EXPORT_DIR}/{figpath}.json", "rb") as f:
                 loaded_jsons[figpath] = json.loads(f.read())[0]
 
         val = (
@@ -550,7 +549,7 @@ def _export_icons(output_dir: str):
         ("powers", "altered"),
     ]:
         shutil.copy(
-            rf"Output-UEx/Hotta/Content/Resources/UI/mingzou/icon/element_{ein}.png",
+            rf"{EXPORT_DIR}/Hotta/Content/Resources/UI/mingzou/icon/element_{ein}.png",
             f"{element_image_dir}/{eout}.png",
         )
 
@@ -561,7 +560,7 @@ def _export_icons(output_dir: str):
         ("zengyi", "support"),
     ]:
         shutil.copy(
-            rf"Output-UEx/Hotta/Content/Resources/UI/mingzou/icon/icon_{cin}.png",
+            rf"{EXPORT_DIR}/Hotta/Content/Resources/UI/mingzou/icon/icon_{cin}.png",
             f"{category_image_dir}/{cout}.png",
         )
 
@@ -577,8 +576,8 @@ def _export_icons(output_dir: str):
         ("jiantou", "next"),
         ("shanbichangan", "hold_dodge"),
     ]:
-        en_ver = rf"Output-UEx/Hotta/Content/L10N/en/Resources/UI/equiptips/Skill/jinengzhaoshu_zhaoshu_{oin}.png"
-        cn_ver = rf"Output-UEx/Hotta/Content/Resources/UI/equiptips/Skill/jinengzhaoshu_zhaoshu_{oin}.png"
+        en_ver = rf"{EXPORT_DIR}/Hotta/Content/L10N/en/Resources/UI/equiptips/Skill/jinengzhaoshu_zhaoshu_{oin}.png"
+        cn_ver = rf"{EXPORT_DIR}/Hotta/Content/Resources/UI/equiptips/Skill/jinengzhaoshu_zhaoshu_{oin}.png"
 
         if os.path.exists(en_ver):
             to_copy = en_ver

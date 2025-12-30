@@ -6,6 +6,8 @@ from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 
+from data_export import EXPORT_DIR
+
 DB_FILE = "sqlite.db"
 BATCH_SIZE = 1000
 MAX_WORKERS = 4
@@ -67,7 +69,7 @@ def create_index():
         running = True
         t = Thread(target=total_counter)
         t.start()
-        for _ in Path("Output-UEx").rglob("*.json"):
+        for _ in Path(EXPORT_DIR).rglob("*.json"):
             total += 1
 
         running = False
@@ -84,7 +86,7 @@ def create_index():
 
         # Process files in chunks to avoid loading all futures at once
         chunk_size = MAX_WORKERS * 10  # Process only 40 files at a time
-        file_iter = file_generator("Output-UEx")
+        file_iter = file_generator(EXPORT_DIR)
 
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             done = False
