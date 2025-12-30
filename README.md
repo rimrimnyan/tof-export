@@ -11,7 +11,7 @@ For this repository, [Ue4Export](https://github.com/CrystalFerrai/Ue4Export) was
 
 ```bat
 REM export-tof.bat
-@Ue4Export --mix-output "X:\path\to\Paks" TowerOfFantasy "tof-assetlist.txt" "X:\path\to\Output-UEx" --key 0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8
+@Ue4Export --mix-output "X:\path\to\Paks" TowerOfFantasy "tof-assetlist.txt" "X:\path\to\tof-assets" --key 0x6E6B325B02B821BD46AF6B62B1E929DC89957DC6F8AA78210D5316798B7508F8
 ```
 
 ```txt
@@ -88,20 +88,20 @@ If you also have the exported assets, clicking on this link should jump to the c
 
 ### Weapon Description
 
-- [Static Weapon Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\StaticWeaponDataTable_MMO.json)
-- [Imitation Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\DT_Imitation_MMO.json)
-- [Weapon Upgrade Star Data](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable\WeaponUpgradeStarData_MMO.json)
-- [Gameplay Ability Tips Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\GameplayAbilityTipsDataTable_Balance.json)
-- [Skill Update Tips](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\Skill\SkillUpdateTips_balance.json)
+- [Static Weapon Data Table](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\StaticWeaponDataTable_MMO.json)
+- [Imitation Data Table](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\DT_Imitation_MMO.json)
+- [Weapon Upgrade Star Data](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable\WeaponUpgradeStarData_MMO.json)
+- [Gameplay Ability Tips Data Table](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\GameplayAbilityTipsDataTable_Balance.json)
+- [Skill Update Tips](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_Balance\Skill\SkillUpdateTips_balance.json)
 
 ### Suppressor Level
 
-- [Suppressor Effect Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\DT_SuppressorEffect_MMO.json)
+- [Suppressor Effect Data Table](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\DT_SuppressorEffect_MMO.json)
 
 ### Equipment
 
-- [Equipment Enhancement Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\EquipStrengthenDataTable_MMO.json)
+- [Equipment Enhancement Data Table](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\EquipStrengthenDataTable_MMO.json)
 
 ### Server Level
 
-- [Server Level Data Table](Output-UEx\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\ServerLevelDataTable_MMO.json)
+- [Server Level Data Table](tof-assets\Hotta\Content\Resources\CoreBlueprints\DataTable_MMO\ServerLevelDataTable_MMO.json)
