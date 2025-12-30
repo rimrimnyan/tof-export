@@ -8,5 +8,5 @@ export
 **.pyc
 
 # local scripts
-auto_export.sh
+upload_export.py
 unpack_export.py
