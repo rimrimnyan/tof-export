@@ -64,7 +64,7 @@ ug -J4 --index -I 'KING'
 
 1. How do I install `package`?
 
-    Make sure you have [choco](https://chocolatey.org/install) (or another package manger) installed.
+    For Windows, make sure you have [choco](https://chocolatey.org/install) (or another package manger) installed. Inside an admin shell:
 
     ```bash
     choco install package
@@ -74,12 +74,6 @@ ug -J4 --index -I 'KING'
 
     Look on the directory where you installed TOF. Inside, it should be on `Client\WindowsNoEditor\Hotta\Content\Paks`.
     For launcher version, it can be `E:\TowerOfFantasy_Global\Client\WindowsNoEditor\Hotta\ContentPaks`
-
-3. Can't you just give a compressed file download or upload all the files in this repository?
-
-    The asset files are around 70 GB total.
-    Even after compressing to 40 GB, it is well above the 2 GB limit for GitHub Releases.
-    And no... please don't ask me to push the asset files to the repository.
 
 ## Navigation
 
