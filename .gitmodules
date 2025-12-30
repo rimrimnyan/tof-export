@@ -1,0 +1,3 @@
+[submodule "tof-assets"]
+	path = tof-assets
+	url = git@github.com:rimrimnyan/tof-assets.git
