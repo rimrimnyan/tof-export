@@ -1,10 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import MISSING, dataclass, field, fields
 from enum import Enum
-from types import NoneType, UnionType
-from typing import Callable, Literal, TypedDict, Union, get_args, get_origin
+from typing import Literal
 import re
-from re import Pattern
 
 from data_types import AbilityItem, Exportable, Operation, Unspecified, Weapon
 
@@ -127,6 +125,14 @@ class AbilityModi(ModificationFunc):
         ability: AbilityItem,
         from_category: AbilityCategory,
     ): ...
+
+
+@dataclass
+class InfoModi(ModificationFunc):
+    "Allows modifying weapon info"
+
+    @abstractmethod
+    def __call__(self, weapon: Weapon): ...
 
 
 #####
@@ -268,6 +274,23 @@ class Previous(ModificationFunc):
 ###
 
 
+@dataclass
+class ModifyInfo(InfoModi):
+    "Replaces some info in the weapon"
+
+    shatter: int | None = field(default=None)
+    charge: int | None = field(default=None)
+
+    def __call__(self, weapon: Weapon):
+        if self.shatter:
+            weapon.shatter = self.shatter
+        if self.charge:
+            weapon.charge = self.charge
+
+
+###
+
+
 class ParamlessModFunc(Enum):
     STRIP = Strip
     PREVIOUS = Previous
@@ -281,6 +304,7 @@ class ParamNModFunc(Enum):
     REMOVE = Remove
     MOVE = Move
     MODIFY = Modify
+    MODIFYINFO = ModifyInfo
 
 
 #####
@@ -302,6 +326,22 @@ _ModificationDict = dict[
 ]
 
 
+class _CharD(dict):
+    def ability(self, name: str) -> ModificationFunc | list[ModificationFunc]:
+        if name in ("INFO",):
+            raise ValueError(f"Invalid ability name '{name}'")
+
+        if name not in self:
+            self[name] = {}
+
+        return self[name]
+
+    def info(self) -> ModifyInfo:
+        if "INFO" not in self:
+            self["INFO"] = ModifyInfo()
+        return self["INFO"]
+
+
 @dataclass
 class Modification(Exportable):
     "Class for loading, editing, and saving modifications"
@@ -316,8 +356,22 @@ class Modification(Exportable):
         d = cls._deserialize_as(_ModificationDict, item)
         return cls(mods=d)
 
-    def add_shatter(self):
-        pass
+    def char(self, char: str) -> _CharD:
+        if char in self.mods and not isinstance(self.mods[char], _CharD):
+            self.mods[char] = _CharD(**self.mods[char])
+
+        if char not in self.mods:
+            self.mods[char] = _CharD()
+
+        return self.mods[char]  # type: ignore
+
+    def modify_shatter(self, weapon: Weapon | str, shatter: int):
+        char = weapon.char if isinstance(weapon, Weapon) else weapon
+        self.char(char).info().shatter = shatter
+
+    def modify_charge(self, weapon: Weapon | str, charge: int):
+        char = weapon.char if isinstance(weapon, Weapon) else weapon
+        self.char(char).info().charge = charge
 
 
 def _apply_mod_single(
@@ -392,6 +446,13 @@ def apply_mod(weapons: list[Weapon], mods: _ModificationDict):
                 case "*":
                     _ablist, _abcats = zip(*weapon_ability_d[weapon.char].values())
                     _apply_mod_multi(modi, weapon, _ablist, _abcats)  # type: ignore
+                case "INFO":
+                    if not isinstance(modi, list):
+                        modi = [modi]
+                    for _mod in modi:
+                        if not isinstance(_mod, InfoModi):
+                            raise ValueError("Must be an InfoModi!")
+                        _mod(weapon)
                 case _:
                     (ability, ability_cat) = weapon_ability_d[_wpn_name][_ab_name]
                     _apply_mod_single(modi, weapon, ability, ability_cat)
