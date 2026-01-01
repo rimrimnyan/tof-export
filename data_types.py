@@ -298,6 +298,8 @@ class Weapon(Exportable):
     intro: str = field(default="")
     element: Element = field(default=Element.UNSPECIFIED)
     category: Category = field(default=Category.UNSPECIFIED)
+    shatter: int | None = field(default=None)
+    charge: int | None = field(default=None)
 
     normals: list[AbilityItem] = field(default_factory=list)
     dodges: list[AbilityItem] = field(default_factory=list)
