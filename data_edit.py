@@ -21,9 +21,28 @@ class ModificationFunc(Exportable):
             # serialize as string
             return ParamlessModFunc(self.__class__).name
 
-        if self.__class__ in ParamModFunc:
+        if self.__class__ in ParamSingleModFunc:
+            # serialize it as { name: value }
+            _classname = ParamNModFunc(self.__class__).name
+
+            _fields = fields(self)
+
+            if len(_fields) > 1:
+                raise ValueError(f"Multiple fields found on {self.__class__.__name__}!")
+
+            for f in _fields:
+                _f_val = getattr(self, f.name)
+
+                # if initially saved as ParamNModFunc, try parsing value
+                if isinstance(_f_val, dict):
+                    for _val in _f_val.values():
+                        return {_classname: _val}
+
+                return {_classname: _f_val}
+
+        if self.__class__ in ParamNModFunc:
             # serialize it as { name: kwargs }
-            _classname = ParamModFunc(self.__class__).name
+            _classname = ParamNModFunc(self.__class__).name
 
             d = {}
 
@@ -50,21 +69,40 @@ class ModificationFunc(Exportable):
             raise ValueError(f"Invalid item {item}")
 
         # grab class name to get actual class
-        E = ParamModFunc[list(item.keys())[0]]
-        _cls = E.value
-        item = item[E.name]
+        classname = list(item.keys())[0]
 
-        d = {}
+        if classname in ParamSingleModFunc.__members__:
+            E = ParamSingleModFunc[classname]
+            _cls = E.value
+            arg = item[E.name]
 
-        for f in fields(_cls):
-            f_val = item.get(f.name, Unspecified())
+            if isinstance(arg, dict):
+                # compatibility for when it was initially saved as ParamNModfunc
+                if len(arg) > 1:
+                    raise ValueError(f"More than one value in {arg}!")
+                for val in arg.values():
+                    return _cls(val)
 
-            if isinstance(f_val, Unspecified):
-                continue
+            return _cls(arg)
 
-            d[f.name] = _cls._deserialize_as(f.type, f_val)
+        if classname in ParamNModFunc.__members__:
+            E = ParamNModFunc[classname]
+            _cls = E.value
+            item = item[E.name]
 
-        return _cls(**d)
+            d = {}
+
+            for f in fields(_cls):
+                f_val = item.get(f.name, Unspecified())
+
+                if isinstance(f_val, Unspecified):
+                    continue
+
+                d[f.name] = _cls._deserialize_as(f.type, f_val)
+
+            return _cls(**d)
+
+        raise ValueError(f"Cannot find appropriate class for {item}")
 
 
 @dataclass
@@ -227,10 +265,7 @@ class Previous(ModificationFunc):
         return cls()
 
 
-class ParamModFunc(Enum):
-    REMOVE = Remove
-    MOVE = Move
-    MODIFY = Modify
+###
 
 
 class ParamlessModFunc(Enum):
@@ -238,11 +273,25 @@ class ParamlessModFunc(Enum):
     PREVIOUS = Previous
 
 
+class ParamSingleModFunc(Enum):
+    REMOVE = Remove
+
+
+class ParamNModFunc(Enum):
+    REMOVE = Remove
+    MOVE = Move
+    MODIFY = Modify
+
+
 #####
 
 WeaponName = str
 AbilityName = str
-AbilityOrMany = AbilityName | Literal["NORMALS", "DODGES", "SKILLS", "DISCHARGES", "*"]
+AbilityOrMany = (
+    AbilityName
+    | Literal["NORMALS", "DODGES", "SKILLS", "DISCHARGES", "*"]
+    | Literal["INFO"]
+)
 
 _ModificationDict = dict[
     WeaponName,
@@ -255,7 +304,7 @@ _ModificationDict = dict[
 
 @dataclass
 class Modification(Exportable):
-    "Class for loading and saving modifications"
+    "Class for loading, editing, and saving modifications"
 
     mods: _ModificationDict
 
@@ -266,6 +315,9 @@ class Modification(Exportable):
     def deserialize(cls, item: dict[str, dict | str | int | list]):
         d = cls._deserialize_as(_ModificationDict, item)
         return cls(mods=d)
+
+    def add_shatter(self):
+        pass
 
 
 def _apply_mod_single(
